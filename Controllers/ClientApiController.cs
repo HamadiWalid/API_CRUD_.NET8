@@ -46,30 +46,30 @@ namespace API_CRUD.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<ClientDto> CreateClient([FromBody]ClientDto client)
+        public ActionResult<ClientDto> CreateClient([FromBody]ClientDto clientDto)
         {
             //if(!ModelState.IsValid)
             //{
             //    return BadRequest();
             //} custum validation in case we dont use this attribute [ApiController] who gives us the possibility to use data annotation in our models
            
-            if (ClientStore.clientList.FirstOrDefault(c=>c.Name.ToLower() == client.Name.ToLower())!=null)
+            if (ClientStore.clientList.FirstOrDefault(c=>c.Name.ToLower() == clientDto.Name.ToLower())!=null)
             {
                 ModelState.AddModelError("CustumError", "The client already exists");
                 return BadRequest(ModelState);
            
             }
 
-            if (client == null)
+            if (clientDto == null)
                 return BadRequest();
 
-            if (client.Id >0)
+            if (clientDto.Id >0)
                 return StatusCode(StatusCodes.Status500InternalServerError);
 
-            client.Id = ClientStore.clientList.OrderByDescending(c => c.Id).FirstOrDefault().Id+1 ;  
+            clientDto.Id = ClientStore.clientList.OrderByDescending(c => c.Id).FirstOrDefault().Id+1 ;  
         
-            ClientStore.clientList.Add(client); 
-            return CreatedAtRoute("GetClient",new { id = client.Id } ,client);
+            ClientStore.clientList.Add(clientDto); 
+            return CreatedAtRoute("GetClient",new { id = clientDto.Id } ,clientDto);
         }
 
         //Delete a client
@@ -93,6 +93,25 @@ namespace API_CRUD.Controllers
             return NoContent();
         }
 
+
+        //Update a client
+        [HttpPut("{id:int}", Name = "UpdateClient")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult UpdateClient(int id,[FromBody] ClientDto clientDto)
+        {
+            if(clientDto == null || id!= clientDto.Id) 
+                 return BadRequest();
+
+            var client = ClientStore.clientList.FirstOrDefault(c => c.Id == id);
+            client.Name=clientDto.Name;
+            client.Address = clientDto.Address;
+            client.PhoneNumber = clientDto.PhoneNumber;
+            client.Email = clientDto.Email;
+            client.Order = clientDto.Order;
+
+            return NoContent();
+        }
 
     }
 }
