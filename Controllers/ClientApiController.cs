@@ -12,11 +12,21 @@ namespace API_CRUD.Controllers
     [ApiController] //tell that is an API
     public class ClientApiController : ControllerBase
     {
+        private readonly ILogger<ClientApiController> _logger;
+
+        public ClientApiController(ILogger<ClientApiController> logger)
+        {
+            _logger = logger;
+        }
+
+
+
         //Get all client
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)] //for documentation 
         public ActionResult <IEnumerable<ClientDto>> GetClients()
         {
+            _logger.LogInformation("Get all client");
             return Ok (ClientStore.clientList);
         }
 
@@ -32,7 +42,10 @@ namespace API_CRUD.Controllers
         public ActionResult <ClientDto> GetClient(int id)
         {
             if (id == 0)
+            {
+                _logger.LogError("Get client error with Id" + id);
                 return BadRequest();
+            }
 
             var client = ClientStore.clientList.FirstOrDefault(c => c.Id == id);
 
