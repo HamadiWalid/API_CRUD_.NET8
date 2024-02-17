@@ -2,6 +2,7 @@
 using API_CRUD.Models;
 using API_CRUD.Models.Dto;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
 
@@ -98,18 +99,45 @@ namespace API_CRUD.Controllers
         [HttpPut("{id:int}", Name = "UpdateClient")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+
         public IActionResult UpdateClient(int id,[FromBody] ClientDto clientDto)
         {
             if(clientDto == null || id!= clientDto.Id) 
                  return BadRequest();
 
             var client = ClientStore.clientList.FirstOrDefault(c => c.Id == id);
+            if(client == null)
+                return NotFound();
+
             client.Name=clientDto.Name;
             client.Address = clientDto.Address;
             client.PhoneNumber = clientDto.PhoneNumber;
             client.Email = clientDto.Email;
             client.Order = clientDto.Order;
 
+            return NoContent();
+        }
+
+
+        //Update partial client
+        [HttpPatch("{id:int}", Name = "UpdatePartialClient")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult UpdatePartialClient(int id, JsonPatchDocument<ClientDto> clientDtoPatch)
+        {
+            if (clientDtoPatch == null || id == 0)
+                return BadRequest();
+
+            var client = ClientStore.clientList.FirstOrDefault(c => c.Id == id);
+            if(client == null )
+                return NotFound();
+            
+            clientDtoPatch.ApplyTo(client,ModelState);
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+    
             return NoContent();
         }
 
