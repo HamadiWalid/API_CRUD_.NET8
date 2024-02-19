@@ -26,7 +26,7 @@ namespace API_CRUD.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)] //for documentation 
         public ActionResult <IEnumerable<ClientDto>> GetClients()
         {
-            _logger.LogInformation("Get all client");
+            _logger.LogInformation("Get all client");//teste info log
             return Ok (ClientStore.clientList);
         }
 
@@ -43,7 +43,7 @@ namespace API_CRUD.Controllers
         {
             if (id == 0)
             {
-                _logger.LogError("Get client error with Id" + id);
+                _logger.LogError("Get client error with Id = " + id);//teste error log
                 return BadRequest();
             }
 

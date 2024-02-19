@@ -1,6 +1,17 @@
+using Serilog;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+//Log.Logger=new LoggerConfiguration().MinimumLevel.Debug().WriteTo.File("log/client.txt",rollingInterval:RollingInterval.Day).CreateLogger();
+////change the logger ans select the minimumlevel of
+////debbuger we ca do .error .. we choose to log debug
+////and we gonna write the log in log/client.txt and update the log every day
+////then we finnish this with the methode CreateLogger() to create the log
+////( we have installed two packages of log for all of this)
+
+//builder.Host.UseSerilog();// Dependency injection
 
 builder.Services.AddControllers(/*option =>{*/
     
