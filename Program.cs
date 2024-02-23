@@ -1,3 +1,5 @@
+using API_CRUD.Data;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 ////( we have installed two packages of log for all of this)
 
 //builder.Host.UseSerilog();// Dependency injection
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ));//dependency injection for dbContext and link it with my connection string
 
 builder.Services.AddControllers(/*option =>{*/
     

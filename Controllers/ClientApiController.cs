@@ -4,6 +4,7 @@ using API_CRUD.Models.Dto;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 
 namespace API_CRUD.Controllers
@@ -13,10 +14,11 @@ namespace API_CRUD.Controllers
     public class ClientApiController : ControllerBase
     {
         private readonly ILogger<ClientApiController> _logger;
-
-        public ClientApiController(ILogger<ClientApiController> logger)
+        private readonly ApplicationDbContext _context;
+        public ClientApiController(ILogger<ClientApiController> logger, ApplicationDbContext context)
         {
             _logger = logger;
+            _context = context; 
         }
 
 
@@ -27,7 +29,7 @@ namespace API_CRUD.Controllers
         public ActionResult <IEnumerable<ClientDto>> GetClients()
         {
             _logger.LogInformation("Get all client");//teste info log
-            return Ok (ClientStore.clientList);
+            return Ok (_context.Clients);
         }
 
 
@@ -47,7 +49,7 @@ namespace API_CRUD.Controllers
                 return BadRequest();
             }
 
-            var client = ClientStore.clientList.FirstOrDefault(c => c.Id == id);
+            var client = _context.Clients.FirstOrDefault(c => c.Id == id);
 
             if(client == null)
                 return NotFound();  
@@ -80,9 +82,22 @@ namespace API_CRUD.Controllers
             if (clientDto.Id >0)
                 return StatusCode(StatusCodes.Status500InternalServerError);
 
-            clientDto.Id = ClientStore.clientList.OrderByDescending(c => c.Id).FirstOrDefault().Id+1 ;  
-        
-            ClientStore.clientList.Add(clientDto); 
+            //clientDto.Id = ClientStore.clientList.OrderByDescending(c => c.Id).FirstOrDefault().Id+1 ;  
+            //ClientStore.clientList.Add(clientDto); // for hard coded data thats not needed in database because id is an identity column
+
+            Client client = new Client()
+            {
+                Id = clientDto.Id,
+                Name = clientDto.Name,
+                Address = clientDto.Address,
+                PhoneNumber = clientDto.PhoneNumber,
+                Email = clientDto.Email,
+                Order = clientDto.Order,
+            };
+
+            _context.Clients.Add(client);    
+            _context.SaveChanges(); 
+
             return CreatedAtRoute("GetClient",new { id = clientDto.Id } ,clientDto);
         }
 
@@ -98,12 +113,14 @@ namespace API_CRUD.Controllers
                 return BadRequest();
             }
 
-            var client = ClientStore.clientList.FirstOrDefault(c => c.Id == id);
+            var client = _context.Clients.FirstOrDefault(c => c.Id == id);
 
             if (client == null)
                 return NotFound();
 
-            ClientStore.clientList.Remove(client);  
+            _context.Clients.Remove(client);
+            _context.SaveChanges();
+
             return NoContent();
         }
 
@@ -119,15 +136,36 @@ namespace API_CRUD.Controllers
             if(clientDto == null || id!= clientDto.Id) 
                  return BadRequest();
 
-            var client = ClientStore.clientList.FirstOrDefault(c => c.Id == id);
-            if(client == null)
-                return NotFound();
+            //var client = ClientStore.clientList.FirstOrDefault(c => c.Id == id);
+            //if(client == null)
+            //    return NotFound();
 
-            client.Name=clientDto.Name;
-            client.Address = clientDto.Address;
-            client.PhoneNumber = clientDto.PhoneNumber;
-            client.Email = clientDto.Email;
-            client.Order = clientDto.Order;
+            //client.Name=clientDto.Name;
+            //client.Address = clientDto.Address;
+            //client.PhoneNumber = clientDto.PhoneNumber;
+            //client.Email = clientDto.Email;
+            //client.Order = clientDto.Order;//for hard coded data
+
+
+            Client client = new Client()
+            {
+                Id = clientDto.Id,
+                Name = clientDto.Name,
+                Address = clientDto.Address,
+                PhoneNumber = clientDto.PhoneNumber,
+                Email = clientDto.Email,
+                Order = clientDto.Order,
+            };
+
+            try
+            {
+                _context.Update(client);
+                _context.SaveChanges();
+            }
+            catch
+            {
+                return NotFound();
+            }
 
             return NoContent();
         }
@@ -142,12 +180,39 @@ namespace API_CRUD.Controllers
             if (clientDtoPatch == null || id == 0)
                 return BadRequest();
 
-            var client = ClientStore.clientList.FirstOrDefault(c => c.Id == id);
-            if(client == null )
+            var client = _context.Clients.AsNoTracking().FirstOrDefault(c => c.Id == id);
+
+
+            ClientDto clientDto = new ClientDto()
+            {
+                Id = client.Id,
+                Name = client.Name,
+                Address = client.Address,
+                PhoneNumber = client.PhoneNumber,
+                Email = client.Email,
+                Order = client.Order,
+            };
+
+
+            if (client == null )
                 return NotFound();
             
-            clientDtoPatch.ApplyTo(client,ModelState);
+            clientDtoPatch.ApplyTo(clientDto,ModelState);
 
+            Client model = new Client()
+            {
+                Id = clientDto.Id,
+                Name = clientDto.Name,
+                Address = clientDto.Address,
+                PhoneNumber = clientDto.PhoneNumber,
+                Email = clientDto.Email,
+                Order = clientDto.Order,
+            };
+
+           
+                _context.Update(model);
+                _context.SaveChanges();
+          
             if (!ModelState.IsValid)
                 return BadRequest();
     
