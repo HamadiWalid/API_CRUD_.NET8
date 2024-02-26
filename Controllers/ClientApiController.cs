@@ -180,7 +180,7 @@ namespace API_CRUD.Controllers
             if (clientDtoPatch == null || id == 0)
                 return BadRequest();
 
-            var client = _context.Clients.AsNoTracking().FirstOrDefault(c => c.Id == id);
+            var client = _context.Clients.AsNoTracking().FirstOrDefault(c => c.Id == id);//AsNoTracking to escape the error of tracking the same id
 
 
             ClientDto clientDto = new ClientDto()
